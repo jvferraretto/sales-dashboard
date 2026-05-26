@@ -1,0 +1,12 @@
+.env
+backend/data/
+backend/venv/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/**/*.pyc
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+*.db
+*.db-shm
+*.db-wal

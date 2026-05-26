@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Start-Process powershell -ArgumentList \"-NoExit\", \"-Command\", \"cd 'c:\\\\ClaudeCode\\\\sales-dashboard\\\\backend'; py -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload\")",
+      "PowerShell(Start-Sleep -Seconds 4; try { Invoke-RestMethod -Uri \"http://localhost:8000/\" } catch { \"Backend ainda nao respondeu: $_\" })",
+      "PowerShell(where.exe node 2>$null; where.exe npm 2>$null; Get-ChildItem \"C:\\\\Users\\\\$env:USERNAME\\\\AppData\\\\Roaming\\\\nvm\" -ErrorAction SilentlyContinue | Select-Object Name)",
+      "PowerShell(winget install OpenJS.NodeJS.LTS --accept-source-agreements --accept-package-agreements 2>&1)",
+      "PowerShell($env:PATH = [System.Environment]::GetEnvironmentVariable\\(\"PATH\", \"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"PATH\", \"User\"\\); node --version; npm --version)",
+      "Skill(update-config)",
+      "Skill(update-config:*)"
+    ]
+  }
+}
