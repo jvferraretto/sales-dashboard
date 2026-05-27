@@ -11,7 +11,7 @@ Dashboard de vendas unificado para acompanhar pedidos e faturamento do Mercado L
 
 - Python 3.11+
 - Node.js 18+ e npm
-- App registrado no [Portal de Desenvolvedores do Mercado Livre](https://developers.mercadolibre.com.br)
+- App registrado no [Portal de Desenvolvedores do Mercado Livre](https://developers.mercadolivre.com.br)
 - App registrado no [Shopee Open Platform](https://open.shopee.com)
 
 ## Setup

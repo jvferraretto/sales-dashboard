@@ -19,7 +19,7 @@ def login():
         "redirect_uri": settings.MELI_REDIRECT_URI,
     }
     return RedirectResponse(
-        f"https://auth.mercadolibre.com.br/authorization?{urlencode(params)}"
+        f"https://auth.mercadolivre.com.br/authorization?{urlencode(params)}"
     )
 
 
