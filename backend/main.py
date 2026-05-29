@@ -1,9 +1,10 @@
 import logging
 import os
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from auth import require_auth
 from database import Base, engine
 from scheduler import start_scheduler
 
@@ -34,10 +35,12 @@ from api.credentials import router as credentials_router
 from api.auth.mercadolivre import router as meli_auth_router
 from api.auth.shopee import router as shopee_auth_router
 
-app.include_router(orders_router, prefix="/orders", tags=["orders"])
-app.include_router(dashboard_router, prefix="/dashboard", tags=["dashboard"])
-app.include_router(sync_router, prefix="/sync", tags=["sync"])
-app.include_router(credentials_router, prefix="/credentials", tags=["credentials"])
+_auth = [Depends(require_auth)]
+
+app.include_router(orders_router, prefix="/orders", tags=["orders"], dependencies=_auth)
+app.include_router(dashboard_router, prefix="/dashboard", tags=["dashboard"], dependencies=_auth)
+app.include_router(sync_router, prefix="/sync", tags=["sync"], dependencies=_auth)
+app.include_router(credentials_router, prefix="/credentials", tags=["credentials"], dependencies=_auth)
 app.include_router(meli_auth_router, prefix="/auth/mercadolivre", tags=["auth"])
 app.include_router(shopee_auth_router, prefix="/auth/shopee", tags=["auth"])
 
