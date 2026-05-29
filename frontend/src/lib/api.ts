@@ -9,7 +9,7 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
   return res.json()
 }
 
-export const fetcher = (path: string) => apiFetch(path)
+export const fetcher = <T>(path: string) => apiFetch<T>(path)
 
 export async function triggerSync(platform?: string) {
   return apiFetch("/sync/trigger", {
