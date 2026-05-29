@@ -31,6 +31,7 @@ class Order(Base):
     currency = Column(String(8), default="BRL")
     buyer_name = Column(String(256))
     created_at = Column(DateTime, nullable=False, index=True)
+    closed_at = Column(DateTime, nullable=True, index=True)
     synced_at = Column(DateTime, server_default=func.now())
 
 

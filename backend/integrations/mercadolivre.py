@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import httpx
 from sqlalchemy.orm import Session
@@ -65,17 +65,7 @@ async def refresh_token_if_needed(db: Session) -> str:
     return cred.access_token
 
 
-async def fetch_orders(db: Session, date_from: datetime, date_to: datetime) -> list:
-    token = await refresh_token_if_needed(db)
-    cred = db.query(PlatformCredential).filter_by(platform=Platform.MELI).first()
-    headers = {"Authorization": f"Bearer {token}"}
-    params = {
-        "seller": cred.seller_id,
-        "order.date_created.from": date_from.strftime("%Y-%m-%dT%H:%M:%S.000-00:00"),
-        "order.date_created.to": date_to.strftime("%Y-%m-%dT%H:%M:%S.000-00:00"),
-        "limit": 50,
-        "offset": 0,
-    }
+async def _paginate_orders(headers: dict, params: dict) -> list:
     orders = []
     async with httpx.AsyncClient() as client:
         while True:
@@ -88,7 +78,38 @@ async def fetch_orders(db: Session, date_from: datetime, date_to: datetime) -> l
             if len(results) < 50:
                 break
             params["offset"] += 50
-    logger.info(f"Mercado Livre: {len(orders)} pedidos encontrados")
+    return orders
+
+
+async def fetch_orders(db: Session, date_from: datetime, date_to: datetime) -> list:
+    token = await refresh_token_if_needed(db)
+    cred = db.query(PlatformCredential).filter_by(platform=Platform.MELI).first()
+    headers = {"Authorization": f"Bearer {token}"}
+    params = {
+        "seller": cred.seller_id,
+        "order.date_created.from": date_from.strftime("%Y-%m-%dT%H:%M:%S.000-00:00"),
+        "order.date_created.to": date_to.strftime("%Y-%m-%dT%H:%M:%S.000-00:00"),
+        "limit": 50,
+        "offset": 0,
+    }
+    orders = await _paginate_orders(headers, params)
+    logger.info(f"Mercado Livre (by created): {len(orders)} pedidos encontrados")
+    return orders
+
+
+async def fetch_orders_by_closed(db: Session, date_from: datetime, date_to: datetime) -> list:
+    token = await refresh_token_if_needed(db)
+    cred = db.query(PlatformCredential).filter_by(platform=Platform.MELI).first()
+    headers = {"Authorization": f"Bearer {token}"}
+    params = {
+        "seller": cred.seller_id,
+        "order.date_closed.from": date_from.strftime("%Y-%m-%dT%H:%M:%S.000-00:00"),
+        "order.date_closed.to": date_to.strftime("%Y-%m-%dT%H:%M:%S.000-00:00"),
+        "limit": 50,
+        "offset": 0,
+    }
+    orders = await _paginate_orders(headers, params)
+    logger.info(f"Mercado Livre (by closed): {len(orders)} pedidos encontrados")
     return orders
 
 
@@ -99,6 +120,10 @@ def map_order(raw: dict) -> dict:
         "delivered": OrderStatus.delivered,
         "cancelled": OrderStatus.cancelled,
     }
+    def to_utc(raw_str: str) -> datetime:
+        return datetime.fromisoformat(raw_str.replace("Z", "+00:00")).astimezone(timezone.utc).replace(tzinfo=None)
+
+    closed_raw = raw.get("date_closed")
     return {
         "platform": Platform.MELI,
         "external_order_id": str(raw["id"]),
@@ -106,7 +131,6 @@ def map_order(raw: dict) -> dict:
         "total_amount": float(raw.get("total_amount", 0)),
         "currency": raw.get("currency_id", "BRL"),
         "buyer_name": raw.get("buyer", {}).get("nickname", ""),
-        "created_at": datetime.fromisoformat(
-            raw["date_created"].replace("Z", "+00:00")
-        ).replace(tzinfo=None),
+        "created_at": to_utc(raw["date_created"]),
+        "closed_at": to_utc(closed_raw) if closed_raw else None,
     }

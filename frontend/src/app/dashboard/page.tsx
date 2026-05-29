@@ -14,9 +14,9 @@ interface KpisData {
 }
 
 export default function DashboardPage() {
-  const { data: kpis }    = useSWR<KpisData>("/dashboard/kpis", fetcher, { refreshInterval: 30000 })
-  const { data: chart }   = useSWR("/dashboard/chart-data?days=30", fetcher)
-  const { data: revenue } = useSWR("/dashboard/revenue-trend?days=30", fetcher)
+  const { data: kpis }    = useSWR<KpisData>("/dashboard/kpis", fetcher, { refreshInterval: 10000 })
+  const { data: chart }   = useSWR("/dashboard/chart-data?days=30", fetcher, { refreshInterval: 10000 })
+  const { data: revenue } = useSWR("/dashboard/revenue-trend?days=30", fetcher, { refreshInterval: 10000 })
 
   return (
     <div className="space-y-8">

@@ -26,7 +26,15 @@ def sync_platform(platform: str) -> None:
         since = now.replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=1)
 
         if platform == Platform.MELI:
-            raw_orders = asyncio.run(ml.fetch_orders(db, since, now))
+            # Busca por date_created E por date_closed para capturar pedidos pagos hoje
+            raw_by_created = asyncio.run(ml.fetch_orders(db, since, now))
+            raw_by_closed = asyncio.run(ml.fetch_orders_by_closed(db, since, now))
+            seen_ids = set()
+            raw_orders = []
+            for o in raw_by_created + raw_by_closed:
+                if o["id"] not in seen_ids:
+                    seen_ids.add(o["id"])
+                    raw_orders.append(o)
             mapped = [ml.map_order(o) for o in raw_orders]
         else:
             raw_orders = asyncio.run(
@@ -43,6 +51,8 @@ def sync_platform(platform: str) -> None:
             )
             if existing:
                 existing.status = data["status"]
+                if data.get("closed_at"):
+                    existing.closed_at = data["closed_at"]
             else:
                 db.add(Order(**data))
                 saved += 1
@@ -74,5 +84,12 @@ def start_scheduler() -> None:
         id="daily_sync",
         replace_existing=True,
     )
+    # Sync a cada 2 minutos entre 06:00 e 23:00 horário Brasília (09:00–02:00 UTC)
+    _scheduler.add_job(
+        sync_all,
+        CronTrigger(minute="*/2", hour="9-23,0,1,2"),
+        id="frequent_sync",
+        replace_existing=True,
+    )
     _scheduler.start()
-    logger.info("APScheduler iniciado — sync diário às 02:00 UTC")
+    logger.info("APScheduler iniciado — sync a cada 15 min (06h–23h) e diário às 02:00 UTC")
