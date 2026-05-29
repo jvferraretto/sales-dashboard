@@ -1,3 +1,5 @@
+from typing import List
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -7,6 +9,8 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "sqlite:////data/sales.db"  # /data = Volume Railway
     ADMIN_USER: str = "admin"
     ADMIN_PASS: str = "troque-essa-senha"
+    # Origens permitidas — separadas por vírgula no env var
+    ALLOWED_ORIGINS: List[str] = ["http://localhost:3000"]
     MELI_APP_ID: str = ""
     MELI_SECRET_KEY: str = ""
     MELI_REDIRECT_URI: str = "http://localhost:8000/auth/mercadolivre/callback"

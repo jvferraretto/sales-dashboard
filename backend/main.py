@@ -5,6 +5,7 @@ from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from auth import require_auth
+from config import settings
 from database import Base, engine
 from scheduler import start_scheduler
 
@@ -14,7 +15,7 @@ app = FastAPI(title="Sales Dashboard API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=settings.ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -24,6 +25,7 @@ app.add_middleware(
 @app.on_event("startup")
 def startup():
     os.makedirs("data", exist_ok=True)
+    os.makedirs("/data", exist_ok=True)
     Base.metadata.create_all(bind=engine)
     start_scheduler()
 
